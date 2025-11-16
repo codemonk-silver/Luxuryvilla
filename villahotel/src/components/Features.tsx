@@ -107,6 +107,11 @@ const Features: React.FC = () => {
           </div>
         ))}
       </div>
+      <div className='flex justify-center'>
+      <button className='px-7 py-2 bg-gray-400 border-gray-600 text-black shadow-xl mt-20 rounded-2xl'>
+        View All Hotels
+      </button>
+      </div>
     </div>
   );
 };
