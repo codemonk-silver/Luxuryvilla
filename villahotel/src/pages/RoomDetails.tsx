@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import { hotels } from "../data/hotel";
 import type { Hotel } from '../data/hotel';
@@ -13,6 +14,36 @@ const RoomDetails: React.FC = () => {
     const [mainImage, setMainImage] = useState<string | undefined>(hotel?.image);
     const [checkIn, setCheckIn] = useState<Date | null>(null);
     const [checkOut, setCheckOut] = useState<Date | null>(null);
+    const [isAvailable, setIsAvailable] = useState(false);
+    const [availabilityMessage, setAvailabilityMessage] = useState<string>("");
+    const navigate = useNavigate();
+
+
+
+    const handleAvailability = () => {
+    if (!checkIn || !checkOut) {
+        setAvailabilityMessage("❌ Please select both dates.");
+        setIsAvailable(false);
+        return;
+    }
+
+    if (checkIn.getTime() === checkOut.getTime()) {
+        setAvailabilityMessage("❌ Room is NOT available on the selected dates.");
+        setIsAvailable(false);
+        return;
+    }
+
+    if (checkOut < checkIn) {
+        setAvailabilityMessage("❌ Check-out date cannot be before check-in.");
+        setIsAvailable(false);
+        return;
+    }
+
+    // Room AVAILABLE
+    setAvailabilityMessage("✔ Room is AVAILABLE on the selected dates.");
+    setIsAvailable(true);
+    };
+
 
      useEffect(() => {
         window.scrollTo(0, 0);
@@ -104,6 +135,7 @@ const RoomDetails: React.FC = () => {
                     <p className="text-md mb-1">Check-In</p>
                     <DatePicker
                         selected={checkIn}
+                        id="checkOutDate"
                         onChange={(date: Date | null) => setCheckIn(date)}
                         placeholderText="Add Date"
                         className="px-4 py-1 rounded-lg cursor-pointer bg-gray-100 text-gray-600 w-[140px]"
@@ -115,6 +147,7 @@ const RoomDetails: React.FC = () => {
                     <p className="text-md mb-1">Check-Out</p>
                     <DatePicker
                         selected={checkOut}
+                        id="checkOutDate"
                         onChange={(date: Date | null) => setCheckOut(date)}
                         placeholderText="Add Date"
                         className="px-4 py-1 rounded-lg cursor-pointer bg-gray-100 text-gray-600 w-[140px]"
@@ -124,11 +157,35 @@ const RoomDetails: React.FC = () => {
                 <hr className="h-14 w-0.5 bg-gray-300" />
                  <div className="flex flex-col items-center">
                     <p className="text-md mb-1">Guest</p>
-                    <p className="text-sm text-gray-600">2</p>
+                    <input type="text" 
+                    id="guests"
+                    className="text-sm text-gray-600" />
                     
                 </div>
                 </div>
-                <div className="bg-blue-700 px-10 py-2 rounded-sm text-white text-md">Check Availabilty</div>
+                <button onClick={() => {
+                    if (!isAvailable) {
+                        handleAvailability(); // check availability first
+                    } else {
+                         // 🔥 SAVE BOOKING DATA (Step 1)
+                            localStorage.setItem("booking", JSON.stringify({
+                                id: hotel.id,
+                                title: hotel.title,
+                                roomType: hotel.roomType,
+                                image: hotel.image,
+                                destination: hotel.Destination,
+                                price: hotel.price,
+                                checkIn,
+                                checkOut,
+                            }));
+                        navigate("/my-bookings"); // if available → go to My Bookings
+                    }
+                }} className="bg-blue-700 px-10 py-2 rounded-sm text-white text-md">{isAvailable ? "Book Now" : "Check Availability"}</button>
+                {availabilityMessage && (
+                <p className={`text-sm mt-3 ${isAvailable ? "text-green-600" : "text-red-600"}`}>
+                {availabilityMessage}
+                </p>
+                )}
             </div>
             <div className="flex flex-col gap-4 mt-16 w-[1000px]">
                 {/* 1st Feature */}
